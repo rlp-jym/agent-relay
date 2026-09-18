@@ -19,6 +19,7 @@ from typing import Any, Literal
 from fastapi import Depends, FastAPI, Header, Path as FastAPIPath, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import HTMLResponse, JSONResponse, Response
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from sqlalchemy.exc import OperationalError
 
@@ -31,7 +32,7 @@ from database import (
     init_db,
     recover_expired,
 )
-from dashboard import dashboard_html
+from dashboard import FRONTEND_DIST, dashboard_html
 from errors import RelayError
 from schemas import (
     ClaimRequest,
@@ -306,6 +307,10 @@ async def dashboard() -> HTMLResponse:
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard_alias() -> HTMLResponse:
     return HTMLResponse(dashboard_html())
+
+
+if (FRONTEND_DIST / "assets").is_dir():
+    app.mount("/assets", StaticFiles(directory=FRONTEND_DIST / "assets"), name="assets")
 
 
 def build_cli() -> argparse.ArgumentParser:
